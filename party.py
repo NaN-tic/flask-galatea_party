@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, abort, g, url_for, request, \
     current_app, flash, redirect, session
 from galatea.tryton import tryton
 from galatea.helpers import login_required
-from flask.ext.babel import gettext as _, lazy_gettext as __
+from flask.ext.babel import gettext as _, lazy_gettext
 from flask.ext.wtf import Form
 from wtforms import TextField, SelectField, IntegerField, validators
 from trytond.transaction import Transaction
@@ -17,9 +17,9 @@ Address = tryton.pool.get('party.address')
 ContactMechanism = tryton.pool.get('party.contact_mechanism')
 
 _CONTACT_TYPES = [
-    ('phone', 'Phone'),
-    ('mobile', 'Mobile'),
-    ('fax', 'Fax'),
+    ('phone', lazy_gettext('Phone')),
+    ('mobile', lazy_gettext('Mobile')),
+    ('fax', lazy_gettext('Fax')),
     ('email', 'E-Mail'),
     ('website', 'Website'),
     ('skype', 'Skype'),
@@ -30,15 +30,15 @@ _CONTACT_TYPES = [
 
 class AddressForm(Form):
     "Address form"
-    name = TextField(_('Name'))
-    street = TextField(__('Street'), [validators.Required()])
-    city = TextField(__('City'), [validators.Required()])
-    zip = TextField(__('Zip'), [validators.Required()])
-    country = SelectField(__('Country'), [validators.Required(), ], coerce=int)
-    subdivision = IntegerField(__('Subdivision'), [validators.Required()])
-    active = SelectField(__('Visibility'), choices=[
-        ('1', _('Active')),
-        ('0', _('Inactive')),
+    name = TextField(lazy_gettext('Name'))
+    street = TextField(lazy_gettext('Street'), [validators.Required()])
+    city = TextField(lazy_gettext('City'), [validators.Required()])
+    zip = TextField(lazy_gettext('Zip'), [validators.Required()])
+    country = SelectField(lazy_gettext('Country'), [validators.Required(), ], coerce=int)
+    subdivision = IntegerField(lazy_gettext('Subdivision'), [validators.Required()])
+    active = SelectField(lazy_gettext('Active'), choices=[
+        ('1', lazy_gettext('Active')),
+        ('0', lazy_gettext('Inactive')),
         ])
 
     def __init__(self, *args, **kwargs):
@@ -62,11 +62,11 @@ class AddressForm(Form):
 
 class ContactMechanismForm(Form):
     "Contact Mechanism form"
-    type = SelectField(__('Type'), choices=_CONTACT_TYPES)
-    value = TextField(__('Value'), [validators.Required()])
-    active = SelectField(__('Visibility'), choices=[
-        ('1', _('Active')),
-        ('0', _('Inactive')),
+    type = SelectField(lazy_gettext('Type'), choices=_CONTACT_TYPES)
+    value = TextField(lazy_gettext('Value'), [validators.Required()])
+    active = SelectField(lazy_gettext('Active'), choices=[
+        ('1', lazy_gettext('Active')),
+        ('0', lazy_gettext('Inactive')),
         ])
 
     def __init__(self, *args, **kwargs):
