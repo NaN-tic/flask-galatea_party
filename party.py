@@ -20,7 +20,7 @@ _CONTACT_TYPES = [
     ('phone', lazy_gettext('Phone')),
     ('mobile', lazy_gettext('Mobile')),
     ('fax', lazy_gettext('Fax')),
-    ('email', 'E-Mail'),
+    ('email', lazy_gettext('E-Mail')),
     ('website', 'Website'),
     ('skype', 'Skype'),
     ('irc', 'IRC'),
@@ -40,6 +40,10 @@ class AddressForm(Form):
         ('1', lazy_gettext('Active')),
         ('0', lazy_gettext('Inactive')),
         ])
+    email = TextField(lazy_gettext('E-Mail'))
+    phone = TextField(lazy_gettext('Phone'))
+    mobile = TextField(lazy_gettext('Mobile'))
+    fax = TextField(lazy_gettext('Fax'))
 
     def __init__(self, *args, **kwargs):
         Form.__init__(self, *args, **kwargs)
@@ -146,11 +150,21 @@ def address_save(lang):
             Address.write(addresses, data)
         else:
             data['party'] = party
+            # To save related contacts to address, install party communication module
+            contacts = []
+            for type_ in ['email', 'phone', 'mobile', 'fax']:
+                value = request.form.get(type_)
+                if value:
+                    contacts.append({
+                        'type': type_,
+                        'value': value,
+                        })
+            if contacts:
+                data['contact_mechanisms'] = [('create', contacts)]
             Address.create([data])
-
-        flash(_('Address saved successfully!'))
+        flash(_('Successfully saved address.'))
     else:
-        flash(_('Error saved Address!'), 'danger')
+        flash(_('Error saved address.'), 'danger')
 
     form.reset()
     return redirect(url_for('.party', lang=g.language))
