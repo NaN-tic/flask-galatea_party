@@ -155,7 +155,7 @@ def address_save(lang):
     form.reset()
     return redirect(url_for('.party', lang=g.language))
 
-@party.route("/address/<id>", endpoint="address-edit")
+@party.route("/address/<int:id>", endpoint="address-edit")
 @login_required
 @tryton.transaction()
 def address_edit(lang, id):
@@ -308,7 +308,7 @@ def contact_mechanism_save(lang):
     form.reset()
     return redirect(url_for('.party', lang=g.language))
 
-@party.route("/contact-mechanism/<id>", endpoint="contact-mechanism-edit")
+@party.route("/contact-mechanism/<int:id>", endpoint="contact-mechanism-edit")
 @login_required
 @tryton.transaction()
 def contact_mechanism_edit(lang, id):
