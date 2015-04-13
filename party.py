@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, abort, g, url_for, request, \
-    current_app, flash, redirect, session
+    current_app, flash, redirect, session, jsonify
 from galatea.tryton import tryton
-from galatea.helpers import login_required
+from galatea.helpers import login_required, manager_required
 from flask.ext.babel import gettext as _, lazy_gettext
 from flask.ext.wtf import Form
 from wtforms import TextField, SelectField, IntegerField, validators
@@ -87,6 +87,40 @@ class ContactMechanismForm(Form):
         self.value.data = ''
         self.active.data = ''
 
+
+@party.route("/admin/json/party", endpoint="admin-party-json")
+@manager_required
+@tryton.transaction()
+def admin_party_json(lang):
+    '''Admin Party JSON'''
+
+    def date_handler(obj):
+        return obj.isoformat() if hasattr(obj, 'isoformat') else obj
+
+    domain = []
+    q = request.args.get('q')
+    if q:
+        domain.append(('rec_name', 'ilike', '%'+q+'%'))
+    parties = Party.search_read(domain, fields_names=['name'])
+
+    return jsonify(results=parties)
+
+@party.route("/admin/json/address", endpoint="admin-address-json")
+@manager_required
+@tryton.transaction()
+def admin_address_json(lang):
+    '''Admin Address JSON'''
+
+    def date_handler(obj):
+        return obj.isoformat() if hasattr(obj, 'isoformat') else obj
+
+    domain = []
+    q = request.args.get('q')
+    if q:
+        domain.append(('rec_name', 'ilike', '%'+q+'%'))
+    addresses = Address.search_read(domain, fields_names=['name'])
+
+    return jsonify(results=addresses)
 
 @party.route("/address/save", methods=["GET", "POST"], endpoint="address-save")
 @login_required
