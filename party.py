@@ -101,7 +101,16 @@ def admin_party_json(lang):
     q = request.args.get('q')
     if q:
         domain.append(('rec_name', 'ilike', '%'+q+'%'))
-    parties = Party.search_read(domain, fields_names=['name'])
+    elif request.args:
+        for k, v in request.args.iteritems():
+            if v.isdigit():
+                v = int(v)
+            domain.append((k, '=', v))
+
+    try:
+        parties = Party.search_read(domain, fields_names=['rec_name'])
+    except:
+        parties = []
 
     return jsonify(results=parties)
 
@@ -118,7 +127,16 @@ def admin_address_json(lang):
     q = request.args.get('q')
     if q:
         domain.append(('rec_name', 'ilike', '%'+q+'%'))
-    addresses = Address.search_read(domain, fields_names=['name'])
+    elif request.args:
+        for k, v in request.args.iteritems():
+            if v.isdigit():
+                v = int(v)
+            domain.append((k, '=', v))
+
+    try:
+        addresses = Address.search_read(domain, fields_names=['rec_name'])
+    except:
+        addresses = []
 
     return jsonify(results=addresses)
 
