@@ -2,8 +2,8 @@ from flask import Blueprint, render_template, abort, g, url_for, request, \
     current_app, flash, redirect, session, jsonify
 from galatea.tryton import tryton
 from galatea.helpers import login_required, manager_required
-from flask.ext.babel import gettext as _, lazy_gettext
-from flask.ext.wtf import Form
+from flask_babel import gettext as _, lazy_gettext
+from flask_wtf import Form
 from wtforms import TextField, SelectField, IntegerField, validators
 from trytond.transaction import Transaction
 
