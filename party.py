@@ -31,11 +31,11 @@ _CONTACT_TYPES = [
 class AddressForm(Form):
     "Address form"
     name = TextField(lazy_gettext('Name'))
-    street = TextField(lazy_gettext('Street'), [validators.Required()])
-    city = TextField(lazy_gettext('City'), [validators.Required()])
-    zip = TextField(lazy_gettext('Zip'), [validators.Required()])
-    country = SelectField(lazy_gettext('Country'), [validators.Required(), ], coerce=int)
-    subdivision = IntegerField(lazy_gettext('Subdivision'), [validators.Required()])
+    street = TextField(lazy_gettext('Street'), [validators.InputRequired()])
+    city = TextField(lazy_gettext('City'), [validators.InputRequired()])
+    zip = TextField(lazy_gettext('Zip'), [validators.InputRequired()])
+    country = SelectField(lazy_gettext('Country'), [validators.InputRequired(), ], coerce=int)
+    subdivision = IntegerField(lazy_gettext('Subdivision'), [validators.InputRequired()])
     active = SelectField(lazy_gettext('Active'), choices=[
         ('1', lazy_gettext('Active')),
         ('0', lazy_gettext('Inactive')),
@@ -67,7 +67,7 @@ class AddressForm(Form):
 class ContactMechanismForm(Form):
     "Contact Mechanism form"
     type = SelectField(lazy_gettext('Type'), choices=_CONTACT_TYPES)
-    value = TextField(lazy_gettext('Value'), [validators.Required()])
+    value = TextField(lazy_gettext('Value'), [validators.InputRequired()])
     active = SelectField(lazy_gettext('Active'), choices=[
         ('1', lazy_gettext('Active')),
         ('0', lazy_gettext('Inactive')),
@@ -102,7 +102,7 @@ def admin_party_json(lang):
     if q:
         domain.append(('rec_name', 'ilike', '%'+q+'%'))
     elif request.args:
-        for k, v in request.args.iteritems():
+        for k, v in request.args.items():
             if v.isdigit():
                 v = int(v)
             domain.append((k, '=', v))
@@ -128,7 +128,7 @@ def admin_address_json(lang):
     if q:
         domain.append(('rec_name', 'ilike', '%'+q+'%'))
     elif request.args:
-        for k, v in request.args.iteritems():
+        for k, v in request.args.items():
             if v.isdigit():
                 v = int(v)
             domain.append((k, '=', v))

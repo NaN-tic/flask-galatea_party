@@ -1,2 +1,1 @@
-from party import *
-
+from .party import *
