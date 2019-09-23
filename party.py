@@ -202,17 +202,18 @@ def address_save(lang):
             Address.write(addresses, data)
         else:
             data['party'] = party
-            # To save related contacts to address, install party communication module
-            contacts = []
-            for type_ in ['email', 'phone', 'mobile', 'fax']:
-                value = request.form.get(type_)
-                if value:
-                    contacts.append({
-                        'type': type_,
-                        'value': value,
-                        })
-            if contacts:
-                data['contact_mechanisms'] = [('create', contacts)]
+            if hasattr(Address, 'contact_mechanisms'):
+                # To save related contacts to address, install party communication module
+                contacts = []
+                for type_ in ['email', 'phone', 'mobile', 'fax']:
+                    value = request.form.get(type_)
+                    if value:
+                        contacts.append({
+                            'type': type_,
+                            'value': value,
+                            })
+                if contacts:
+                    data['contact_mechanisms'] = [('create', contacts)]
             Address.create([data])
         flash(_('Successfully saved address.'))
     else:
