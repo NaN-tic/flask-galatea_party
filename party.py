@@ -103,12 +103,16 @@ def admin_party_json(lang):
         domain.append(('rec_name', 'ilike', '%'+q+'%'))
     elif request.args:
         for k, v in request.args.iteritems():
+            if k == 'fields_names':
+                continue
             if v.isdigit():
                 v = int(v)
             domain.append((k, '=', v))
 
+    fields_names = request.args.get('fields_names', 'rec_name').split(',')
+
     try:
-        parties = Party.search_read(domain, fields_names=['rec_name'])
+        parties = Party.search_read(domain, fields_names=fields_names)
     except:
         parties = []
 
@@ -129,12 +133,15 @@ def admin_address_json(lang):
         domain.append(('rec_name', 'ilike', '%'+q+'%'))
     elif request.args:
         for k, v in request.args.iteritems():
+            if k == 'fields_names':
+                continue
             if v.isdigit():
                 v = int(v)
             domain.append((k, '=', v))
+    fields_names = request.args.get('fields_names', 'rec_name').split(',')
 
     try:
-        addresses = Address.search_read(domain, fields_names=['rec_name'])
+        addresses = Address.search_read(domain, fields_names=fields_names)
     except:
         addresses = []
 
