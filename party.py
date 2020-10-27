@@ -1,91 +1,36 @@
-from flask import Blueprint, render_template, abort, g, url_for, request, \
-    current_app, flash, redirect, session, jsonify
+from flask import (Blueprint, render_template, abort, g, url_for, request,
+    current_app, flash, redirect, session, jsonify)
 from galatea.tryton import tryton
 from galatea.helpers import login_required, manager_required
 from flask_babel import gettext as _, lazy_gettext
-from flask_wtf import Form
-from wtforms import TextField, SelectField, IntegerField, validators
 from trytond.transaction import Transaction
+from .forms import AddressForm, ContactMechanismForm
 
 party = Blueprint('party', __name__, template_folder='templates')
 
 GALATEA_WEBSITE = current_app.config.get('TRYTON_GALATEA_SITE')
 
 Website = tryton.pool.get('galatea.website')
-Party = tryton.pool.get('party.party')
+PartyParty = tryton.pool.get('party.party')
 Address = tryton.pool.get('party.address')
 ContactMechanism = tryton.pool.get('party.contact_mechanism')
 
-_CONTACT_TYPES = [
-    ('phone', lazy_gettext('Phone')),
-    ('mobile', lazy_gettext('Mobile')),
-    ('fax', lazy_gettext('Fax')),
-    ('email', lazy_gettext('E-Mail')),
-    ('website', 'Website'),
-    ('skype', 'Skype'),
-    ('irc', 'IRC'),
-    ('jabber', 'Jabber'),
-]
 
+class Party(object):
+    '''
+    This object is used to hold the settings used for party configuration.
+    '''
+    def __init__(self, app=None):
+        self.address_form = AddressForm
+        self.contact_mechanism_form = ContactMechanismForm
 
-class AddressForm(Form):
-    "Address form"
-    name = TextField(lazy_gettext('Name'))
-    street = TextField(lazy_gettext('Street'), [validators.InputRequired()])
-    city = TextField(lazy_gettext('City'), [validators.InputRequired()])
-    zip = TextField(lazy_gettext('Zip'), [validators.InputRequired()])
-    country = SelectField(lazy_gettext('Country'), [validators.InputRequired(), ], coerce=int)
-    subdivision = IntegerField(lazy_gettext('Subdivision'), [validators.InputRequired()])
-    active = SelectField(lazy_gettext('Active'), choices=[
-        ('1', lazy_gettext('Active')),
-        ('0', lazy_gettext('Inactive')),
-        ])
-    email = TextField(lazy_gettext('E-Mail'))
-    phone = TextField(lazy_gettext('Phone'))
-    mobile = TextField(lazy_gettext('Mobile'))
-    fax = TextField(lazy_gettext('Fax'))
+        if app is not None:
+            self.init_app(app)
 
-    def __init__(self, *args, **kwargs):
-        Form.__init__(self, *args, **kwargs)
-
-    def validate(self):
-        rv = Form.validate(self)
-        if not rv:
-            return False
-        return True
-
-    def reset(self):
-        self.name.data = ''
-        self.street.data = ''
-        self.city.data = ''
-        self.zip.data = ''
-        self.country.data = ''
-        self.subdivision.data = ''
-        self.active.data = ''
-
-
-class ContactMechanismForm(Form):
-    "Contact Mechanism form"
-    type = SelectField(lazy_gettext('Type'), choices=_CONTACT_TYPES)
-    value = TextField(lazy_gettext('Value'), [validators.InputRequired()])
-    active = SelectField(lazy_gettext('Active'), choices=[
-        ('1', lazy_gettext('Active')),
-        ('0', lazy_gettext('Inactive')),
-        ])
-
-    def __init__(self, *args, **kwargs):
-        Form.__init__(self, *args, **kwargs)
-
-    def validate(self):
-        rv = Form.validate(self)
-        if not rv:
-            return False
-        return True
-
-    def reset(self):
-        self.type.data = ''
-        self.value.data = ''
-        self.active.data = ''
+    def init_app(self, app):
+        if not hasattr(app, 'extensions'):
+            app.extensions = {}
+        app.extensions['Party'] = self
 
 
 @party.route("/admin/json/party", endpoint="admin-party-json")
@@ -112,7 +57,7 @@ def admin_party_json(lang):
     fields_names = request.args.get('fields_names', 'rec_name').split(',')
 
     try:
-        parties = Party.search_read(domain, fields_names=fields_names)
+        parties = PartyParty.search_read(domain, fields_names=fields_names)
     except:
         parties = []
 
@@ -165,14 +110,14 @@ def address_save(lang):
     customer = session.get('customer')
 
     with Transaction().set_context(active_test=False):
-        parties = Party.search([
+        parties = PartyParty.search([
             ('id', '=', customer),
             ], limit=1)
         if not parties:
             abort(404)
-        party, = Party.browse(parties)
+        party, = parties
 
-    form = AddressForm(active='1')
+    form = current_app.extensions['Party'].address_form(active='1')
     if website.countries:
         countries = [(c.id, c.name) for c in website.countries]
     else:
@@ -180,21 +125,7 @@ def address_save(lang):
     form.country.choices = countries
 
     if form.validate_on_submit():
-        data = {
-            'name': request.form.get('name', None),
-            'street': request.form.get('street'),
-            'city': request.form.get('city'),
-            'zip': request.form.get('zip'),
-            'country': request.form.get('country'),
-            'subdivision': request.form.get('subdivision'),
-            }
-
-        # change active to True/False
-        if request.form.get('active'):
-            if request.form.get('active') == '0':
-                data['active'] = False
-            else:
-                data['active'] = True
+        address = form.get_address()
 
         if request.form.get('id'):
             with Transaction().set_context(active_test=False):
@@ -206,27 +137,30 @@ def address_save(lang):
                 flash(_('You try edit an address and not have permissions!'),
                     'danger')
                 return redirect(url_for('.party', lang=g.language))
-            Address.write(addresses, data)
+            Address.write(addresses, address._save_values)
         else:
-            data['party'] = party
+            address.party = party
             if hasattr(Address, 'contact_mechanisms'):
                 # To save related contacts to address, install party communication module
                 contacts = []
                 for type_ in ['email', 'phone', 'mobile', 'fax']:
                     value = request.form.get(type_)
                     if value:
-                        contacts.append({
-                            'type': type_,
-                            'value': value,
-                            })
+                        contact = ContactMechanism()
+                        contact.type = type_
+                        contact.value = value
+                        contacts.append(contact)
                 if contacts:
-                    data['contact_mechanisms'] = [('create', contacts)]
-            Address.create([data])
+                    address.contact_mechanisms = contacts
+            Address.create([address._save_values])
         flash(_('Successfully saved address.'))
+        form.reset()
     else:
-        flash(_('Error saved address.'), 'danger')
+        errors = [_('Error saved address.')]
+        for k, v in form.errors.items():
+            errors.append('%s: %s' % (getattr(form, k).label.text, ', '.join(v)))
+        flash(errors, 'danger')
 
-    form.reset()
     return redirect(url_for('.party', lang=g.language))
 
 @party.route("/address/<int:id>", endpoint="address-edit")
@@ -250,18 +184,11 @@ def address_edit(lang, id):
             ], limit=1)
         if not addresses:
             abort(404)
-        address, = Address.browse(addresses)
+        address, = addresses
         party = address.party
 
-    form = AddressForm(
-        name = address.name,
-        street = address.street,
-        city = address.city,
-        zip = address.zip,
-        country = address.country.id if address.country else website.country.id,
-        subdivision = address.subdivision.id if address.subdivision else None,
-        active = '1' if address.active else '0',
-        )
+    form = current_app.extensions['Party'].address_form()
+    form.load(address, website)
     if website.countries:
         countries = [(c.id, c.name) for c in website.countries]
     else:
@@ -299,19 +226,24 @@ def address_new(lang):
     customer = session.get('customer')
 
     with Transaction().set_context(active_test=False):
-        parties = Party.search([
+        parties = PartyParty.search([
             ('id', '=', customer),
             ], limit=1)
         if not parties:
             abort(404)
-        party, = Party.browse(parties)
+        party, = parties
 
-    form = AddressForm(country=website.country.id, active=True)
+    form = current_app.extensions['Party'].address_form(country=website.country.id, active=True)
     if website.countries:
         countries = [(c.id, c.name) for c in website.countries]
     else:
         countries = [(website.country.id, website.country.name)]
     form.country.choices = countries
+
+    if hasattr(Address, 'delivery'):
+        form.delivery.data = 'on'
+    if hasattr(Address, 'invoice'):
+        form.invoice.data = 'on'
 
     #breadcumbs
     breadcrumbs = [{
@@ -340,14 +272,14 @@ def contact_mechanism_save(lang):
     customer = session.get('customer')
 
     with Transaction().set_context(active_test=False):
-        parties = Party.search([
+        parties = PartyParty.search([
             ('id', '=', customer),
             ], limit=1)
         if not parties:
             abort(404)
-        party, = Party.browse(parties)
+        party, = parties
 
-    form = ContactMechanismForm(active='1')
+    form = current_app.extensions['Party'].contact_mechanism_form(active='1')
     if form.validate_on_submit():
         data = {
             'type': request.form.get('type', 'phone'),
@@ -396,10 +328,10 @@ def contact_mechanism_edit(lang, id):
             ], limit=1)
         if not contact_mechanismes:
             abort(404)
-        contact_mechanism, = ContactMechanism.browse(contact_mechanismes)
+        contact_mechanism, = contact_mechanismes
         party = contact_mechanism.party
 
-    form = ContactMechanismForm(
+    form = current_app.extensions['Party'].contact_mechanism_form(
         type = contact_mechanism.type,
         value = contact_mechanism.value,
         active = '1' if contact_mechanism.active else '0',
@@ -429,14 +361,14 @@ def contact_mechanism_new(lang):
     customer = session.get('customer')
 
     with Transaction().set_context(active_test=False):
-        parties = Party.search([
+        parties = PartyParty.search([
             ('id', '=', customer),
             ], limit=1)
         if not parties:
             abort(404)
-        party, = Party.browse(parties)
+        party, = parties
 
-    form = ContactMechanismForm(type='phone', active=True)
+    form = current_app.extensions['Party'].contact_mechanism_form(type='phone', active=True)
 
     #breadcumbs
     breadcrumbs = [{
@@ -462,12 +394,12 @@ def party_detail(lang):
     customer = session.get('customer')
 
     with Transaction().set_context(active_test=False):
-        parties = Party.search([
+        parties = PartyParty.search([
             ('id', '=', customer),
             ], limit=1)
         if not parties:
             abort(404)
-        party, = Party.browse(parties)
+        party, = parties
 
     #breadcumbs
     breadcrumbs = [{
