@@ -51,7 +51,7 @@ class AddressForm(Form):
         return True
 
     def load(self, address, website):
-        self.name.data = address.name
+        self.name.data = address.party_name
         self.street.data = address.street
         self.city.data = address.city
         self.zip.data = address.zip
@@ -75,7 +75,7 @@ class AddressForm(Form):
 
     def get_address(self):
         address = Address()
-        address.name = request.form.get('name')
+        address.party_name = request.form.get('name')
         address.street = request.form.get('street')
         address.city = request.form.get('city')
         address.zip = request.form.get('zip')
