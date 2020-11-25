@@ -29,7 +29,6 @@ _CONTACT_TYPES = [
     ('jabber', 'Jabber'),
 ]
 
-endpoints = [rule.endpoint for rule in current_app.url_map.iter_rules()]
 breadcrumbs = []
 if BREADCUMB_MY_ACCOUNT:
     breadcrumbs.append({
