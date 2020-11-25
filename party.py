@@ -1,5 +1,5 @@
-from flask import Blueprint, render_template, abort, g, url_for, request, \
-    current_app, flash, redirect, session, jsonify
+from flask import (Blueprint, render_template, abort, g, url_for, request,
+    current_app, flash, redirect, session, jsonify)
 from galatea.tryton import tryton
 from galatea.helpers import login_required, manager_required
 from flask_babel import gettext as _, lazy_gettext
@@ -16,6 +16,8 @@ Party = tryton.pool.get('party.party')
 Address = tryton.pool.get('party.address')
 ContactMechanism = tryton.pool.get('party.contact_mechanism')
 
+BREADCUMB_MY_ACCOUNT = current_app.config.get('BREADCUMB_MY_ACCOUNT')
+
 _CONTACT_TYPES = [
     ('phone', lazy_gettext('Phone')),
     ('mobile', lazy_gettext('Mobile')),
@@ -27,6 +29,13 @@ _CONTACT_TYPES = [
     ('jabber', 'Jabber'),
 ]
 
+endpoints = [rule.endpoint for rule in current_app.url_map.iter_rules()]
+breadcrumbs = []
+if BREADCUMB_MY_ACCOUNT:
+    breadcrumbs.append({
+            'slug': url_for(BREADCUMB_MY_ACCOUNT, lang=g.language),
+            'name': _('My Account'),
+            })
 
 class AddressForm(Form):
     "Address form"
@@ -269,13 +278,10 @@ def address_edit(lang, id):
     form.country.choices = countries
 
     #breadcumbs
-    breadcrumbs = [{
-        'slug': url_for('my-account', lang=g.language),
-        'name': _('My Account'),
-        }, {
+    breadcrumbs.append({
         'slug': url_for('.party', lang=g.language),
         'name': address.party.rec_name,
-        }]
+        })
 
     return render_template('party-address.html',
             breadcrumbs=breadcrumbs,
@@ -314,13 +320,10 @@ def address_new(lang):
     form.country.choices = countries
 
     #breadcumbs
-    breadcrumbs = [{
-        'slug': url_for('my-account', lang=g.language),
-        'name': _('My Account'),
-        }, {
+    breadcrumbs.append({
         'slug': url_for('.party', lang=g.language),
         'name': party.rec_name,
-        }]
+        })
 
     return render_template('party-address.html',
             breadcrumbs=breadcrumbs,
@@ -406,13 +409,10 @@ def contact_mechanism_edit(lang, id):
         )
 
     #breadcumbs
-    breadcrumbs = [{
-        'slug': url_for('my-account', lang=g.language),
-        'name': _('My Account'),
-        }, {
+    breadcrumbs.append({
         'slug': url_for('.party', lang=g.language),
         'name': contact_mechanism.party.rec_name,
-        }]
+        })
 
     return render_template('party-contact-mechanism.html',
             breadcrumbs=breadcrumbs,
@@ -439,13 +439,10 @@ def contact_mechanism_new(lang):
     form = ContactMechanismForm(type='phone', active=True)
 
     #breadcumbs
-    breadcrumbs = [{
-        'slug': url_for('my-account', lang=g.language),
-        'name': _('My Account'),
-        }, {
+    breadcrumbs.append({
         'slug': url_for('.party', lang=g.language),
         'name': party.rec_name,
-        }]
+        })
 
     return render_template('party-contact-mechanism.html',
             breadcrumbs=breadcrumbs,
@@ -470,13 +467,10 @@ def party_detail(lang):
         party, = Party.browse(parties)
 
     #breadcumbs
-    breadcrumbs = [{
-        'slug': url_for('my-account', lang=g.language),
-        'name': _('My Account'),
-        }, {
+    breadcrumbs.append({
         'slug': url_for('.party', lang=g.language),
         'name': party.rec_name,
-        }]
+        })
 
     return render_template('party.html',
             breadcrumbs=breadcrumbs,
