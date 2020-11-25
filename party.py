@@ -17,13 +17,6 @@ ContactMechanism = tryton.pool.get('party.contact_mechanism')
 
 BREADCUMB_MY_ACCOUNT = current_app.config.get('BREADCUMB_MY_ACCOUNT')
 
-breadcrumbs = []
-if BREADCUMB_MY_ACCOUNT:
-    breadcrumbs.append({
-            'slug': url_for(BREADCUMB_MY_ACCOUNT, lang=g.language),
-            'name': _('My Account'),
-            })
-
 
 class Party(object):
     '''
@@ -40,6 +33,16 @@ class Party(object):
         if not hasattr(app, 'extensions'):
             app.extensions = {}
         app.extensions['Party'] = self
+
+
+def base_breadcrumbs():
+    breadcrumbs = []
+    if BREADCUMB_MY_ACCOUNT:
+        breadcrumbs.append({
+                'slug': url_for(BREADCUMB_MY_ACCOUNT, lang=g.language),
+                'name': _('My Account'),
+                })
+    return breadcrumbs
 
 
 @party.route("/admin/json/party", endpoint="admin-party-json")
@@ -205,6 +208,7 @@ def address_edit(lang, id):
     form.country.choices = countries
 
     #breadcumbs
+    breadcrumbs = base_breadcrumbs()
     breadcrumbs.append({
         'slug': url_for('.party', lang=g.language),
         'name': address.party.rec_name,
@@ -252,6 +256,7 @@ def address_new(lang):
         form.invoice.data = 'on'
 
     #breadcumbs
+    breadcrumbs = base_breadcrumbs()
     breadcrumbs.append({
         'slug': url_for('.party', lang=g.language),
         'name': party.rec_name,
@@ -341,6 +346,7 @@ def contact_mechanism_edit(lang, id):
         )
 
     #breadcumbs
+    breadcrumbs = base_breadcrumbs()
     breadcrumbs.append({
         'slug': url_for('.party', lang=g.language),
         'name': contact_mechanism.party.rec_name,
@@ -371,6 +377,7 @@ def contact_mechanism_new(lang):
     form = current_app.extensions['Party'].contact_mechanism_form(type='phone', active=True)
 
     #breadcumbs
+    breadcrumbs = base_breadcrumbs()
     breadcrumbs.append({
         'slug': url_for('.party', lang=g.language),
         'name': party.rec_name,
@@ -399,6 +406,7 @@ def party_detail(lang):
         party, = parties
 
     #breadcumbs
+    breadcrumbs = base_breadcrumbs()
     breadcrumbs.append({
         'slug': url_for('.party', lang=g.language),
         'name': party.rec_name,
