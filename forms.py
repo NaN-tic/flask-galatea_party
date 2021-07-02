@@ -23,7 +23,7 @@ class AddressForm(Form):
     name = TextField(lazy_gettext('Name'))
     street = TextField(lazy_gettext('Street'), [validators.InputRequired()])
     city = TextField(lazy_gettext('City'), [validators.InputRequired()])
-    zip = TextField(lazy_gettext('Zip'), [validators.InputRequired()])
+    postal_code = TextField(lazy_gettext('Postal Code'), [validators.InputRequired()])
     country = SelectField(lazy_gettext('Country'), [validators.InputRequired(), ], coerce=int)
     subdivision = IntegerField(lazy_gettext('Subdivision'), [validators.InputRequired()])
     active = SelectField(lazy_gettext('Active'), choices=[
@@ -54,7 +54,7 @@ class AddressForm(Form):
         self.name.data = address.party_name
         self.street.data = address.street
         self.city.data = address.city
-        self.zip.data = address.zip
+        self.postal_code.data = address.postal_code
         self.country.data = ((address.country and address.country.id)
             or (website.country and website.country.id) or None)
         self.subdivision.data = address.subdivision.id if address.subdivision else None
@@ -68,7 +68,7 @@ class AddressForm(Form):
         self.name.data = ''
         self.street.data = ''
         self.city.data = ''
-        self.zip.data = ''
+        self.postal_code.data = ''
         self.country.data = ''
         self.subdivision.data = ''
         self.active.data = ''
@@ -78,7 +78,7 @@ class AddressForm(Form):
         address.party_name = request.form.get('name')
         address.street = request.form.get('street')
         address.city = request.form.get('city')
-        address.zip = request.form.get('zip')
+        address.postal_code = request.form.get('postal_code')
         country = request.form.get('country')
         subdivision = request.form.get('subdivision')
         address.country = int(country) if country and country != '0' else None
