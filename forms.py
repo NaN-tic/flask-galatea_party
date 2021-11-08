@@ -2,7 +2,7 @@ from flask import request
 from galatea.tryton import tryton
 from flask_babel import gettext as lazy_gettext
 from flask_wtf import Form
-from wtforms import BooleanField, TextField, SelectField, IntegerField, validators
+from wtforms import BooleanField, StringField, SelectField, IntegerField, validators
 
 Address = tryton.pool.get('party.address')
 
@@ -20,26 +20,26 @@ _CONTACT_TYPES = [
 
 class AddressForm(Form):
     "Address form"
-    name = TextField(lazy_gettext('Name'))
-    street = TextField(lazy_gettext('Street'), [validators.InputRequired()])
-    city = TextField(lazy_gettext('City'), [validators.InputRequired()])
-    zip = TextField(lazy_gettext('Zip'), [validators.InputRequired()])
+    name = StringField(lazy_gettext('Name'))
+    street = StringField(lazy_gettext('Street'), [validators.InputRequired()])
+    city = StringField(lazy_gettext('City'), [validators.InputRequired()])
+    zip = StringField(lazy_gettext('Zip'), [validators.InputRequired()])
     country = SelectField(lazy_gettext('Country'), [validators.InputRequired(), ], coerce=int)
     subdivision = IntegerField(lazy_gettext('Subdivision'), [validators.InputRequired()])
     active = SelectField(lazy_gettext('Active'), choices=[
         ('1', lazy_gettext('Active')),
         ('0', lazy_gettext('Inactive')),
         ])
-    email = TextField(lazy_gettext('E-Mail'))
-    phone = TextField(lazy_gettext('Phone'))
-    mobile = TextField(lazy_gettext('Mobile'))
-    fax = TextField(lazy_gettext('Fax'))
+    email = StringField(lazy_gettext('E-Mail'))
+    phone = StringField(lazy_gettext('Phone'))
+    mobile = StringField(lazy_gettext('Mobile'))
+    fax = StringField(lazy_gettext('Fax'))
     if hasattr(Address, 'delivery'):
         delivery = BooleanField(lazy_gettext('Delivery Address'))
     if hasattr(Address, 'invoice'):
         invoice = BooleanField(lazy_gettext('Invoice Address'))
     if hasattr(Address, 'comment_shipment'):
-        comment_shipment = TextField(lazy_gettext('Shipment Comment'))
+        comment_shipment = StringField(lazy_gettext('Shipment Comment'))
 
     def __init__(self, *args, **kwargs):
         Form.__init__(self, *args, **kwargs)
@@ -100,7 +100,7 @@ class AddressForm(Form):
 class ContactMechanismForm(Form):
     "Contact Mechanism form"
     type = SelectField(lazy_gettext('Type'), choices=_CONTACT_TYPES)
-    value = TextField(lazy_gettext('Value'), [validators.InputRequired()])
+    value = StringField(lazy_gettext('Value'), [validators.InputRequired()])
     active = SelectField(lazy_gettext('Active'), choices=[
         ('1', lazy_gettext('Active')),
         ('0', lazy_gettext('Inactive')),
