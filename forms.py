@@ -1,7 +1,7 @@
 from flask import request
 from galatea.tryton import tryton
 from flask_babel import gettext as lazy_gettext
-from flask_wtf import Form
+from flask_wtf import FlaskForm as Form
 from wtforms import BooleanField, StringField, SelectField, IntegerField, validators
 
 Address = tryton.pool.get('party.address')
