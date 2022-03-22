@@ -30,10 +30,11 @@ class AddressForm(Form):
         ('1', lazy_gettext('Active')),
         ('0', lazy_gettext('Inactive')),
         ])
-    email = StringField(lazy_gettext('E-Mail'))
-    phone = StringField(lazy_gettext('Phone'))
-    mobile = StringField(lazy_gettext('Mobile'))
-    fax = StringField(lazy_gettext('Fax'))
+    if hasattr(Address, 'contact_mechanisms'):
+        email = StringField(lazy_gettext('E-Mail'))
+        phone = StringField(lazy_gettext('Phone'))
+        mobile = StringField(lazy_gettext('Mobile'))
+        fax = StringField(lazy_gettext('Fax'))
     if hasattr(Address, 'delivery'):
         delivery = BooleanField(lazy_gettext('Delivery Address'))
     if hasattr(Address, 'invoice'):
@@ -59,6 +60,11 @@ class AddressForm(Form):
             or (website.country and website.country.id) or None)
         self.subdivision.data = address.subdivision.id if address.subdivision else None
         self.active.data = '1' if address.active else '0'
+        if hasattr(Address, 'contact_mechanisms'):
+            self.email.data = address.email
+            self.phone.data = address.phone
+            self.mobile.data = address.mobile
+            self.fax.data = address.fax
         if hasattr(Address, 'delivery'):
             self.delivery.data = 'on' if address.delivery else None
         if hasattr(Address, 'invoice'):
@@ -90,6 +96,11 @@ class AddressForm(Form):
                 address.active = False
             else:
                 address.active = True
+        if hasattr(Address, 'contact_mechanisms'):
+            address.email = request.form.get('email')
+            address.phone = request.form.get('phone')
+            address.mobile = request.form.get('mobile')
+            address.fax = request.form.get('fax')
         if hasattr(Address, 'delivery'):
             address.delivery = True if request.form.get('delivery') == 'on' else False
         if hasattr(Address, 'invoice'):
