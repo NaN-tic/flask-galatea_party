@@ -23,7 +23,7 @@ class AddressForm(Form):
     name = StringField(lazy_gettext('Name'))
     street = StringField(lazy_gettext('Street'), [validators.InputRequired()])
     city = StringField(lazy_gettext('City'), [validators.InputRequired()])
-    zip = StringField(lazy_gettext('Zip'), [validators.InputRequired()])
+    zip = StringField(lazy_gettext('Zip'), [])
     country = SelectField(lazy_gettext('Country'), [validators.InputRequired(), ], coerce=int)
     subdivision = IntegerField(lazy_gettext('Subdivision'), [validators.InputRequired()])
     active = SelectField(lazy_gettext('Active'), choices=[
