@@ -385,13 +385,13 @@ def party_detail(lang):
     '''Party Detail'''
     customer = session.get('customer')
 
-    with Transaction().set_context(active_test=False):
-        parties = PartyParty.search([
-            ('id', '=', customer),
-            ], limit=1)
-        if not parties:
-            abort(404)
-        party, = parties
+    parties = PartyParty.search([
+        ('id', '=', customer),
+        ('active', 'in', [True, False]),
+        ], limit=1)
+    if not parties:
+        abort(404)
+    party, = parties
 
     #breadcumbs
     breadcrumbs = base_breadcrumbs()
