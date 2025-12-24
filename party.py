@@ -8,10 +8,6 @@ from .forms import AddressForm, ContactMechanismForm
 
 party = Blueprint('party', __name__, template_folder='templates')
 
-GALATEA_WEBSITE = current_app.config.get('TRYTON_GALATEA_SITE')
-
-BREADCUMB_MY_ACCOUNT = current_app.config.get('BREADCUMB_MY_ACCOUNT')
-
 
 class Party(object):
     '''
@@ -31,6 +27,8 @@ class Party(object):
 
 
 def base_breadcrumbs():
+    BREADCUMB_MY_ACCOUNT = current_app.config.get('BREADCUMB_MY_ACCOUNT')
+
     breadcrumbs = []
     if BREADCUMB_MY_ACCOUNT:
         breadcrumbs.append({
@@ -109,6 +107,7 @@ def address_save(lang):
     Website = tryton.pool.get('galatea.website')
     PartyParty = tryton.pool.get('party.party')
     Address = tryton.pool.get('party.address')
+    GALATEA_WEBSITE = current_app.config.get('TRYTON_GALATEA_SITE')
 
     if request.method == 'GET':
         return redirect(url_for('.party', lang=g.language))
@@ -150,10 +149,10 @@ def address_save(lang):
                 flash(_('You try edit an address and not have permissions!'),
                     'danger')
                 return redirect(url_for('.party', lang=g.language))
-            Address.write(addresses, address._save_values)
+            Address.write(addresses, address._save_values())
         else:
             address.party = party
-            Address.create([address._save_values])
+            Address.create([address._save_values()])
         flash(_('Successfully saved address.'))
         form.reset()
     else:
@@ -171,6 +170,7 @@ def address_edit(lang, id):
     '''Edit Address'''
     Website = tryton.pool.get('galatea.website')
     Address = tryton.pool.get('party.address')
+    GALATEA_WEBSITE = current_app.config.get('TRYTON_GALATEA_SITE')
 
     websites = Website.search([
         ('id', '=', GALATEA_WEBSITE),
@@ -221,6 +221,7 @@ def address_new(lang):
     Website = tryton.pool.get('galatea.website')
     PartyParty = tryton.pool.get('party.party')
     Address = tryton.pool.get('party.address')
+    GALATEA_WEBSITE = current_app.config.get('TRYTON_GALATEA_SITE')
 
     websites = Website.search([
         ('id', '=', GALATEA_WEBSITE),
