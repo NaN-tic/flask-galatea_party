@@ -149,10 +149,10 @@ def address_save(lang):
                 flash(_('You try edit an address and not have permissions!'),
                     'danger')
                 return redirect(url_for('.party', lang=g.language))
-            Address.write(addresses, address._save_values)
+            Address.write(addresses, address._save_values())
         else:
             address.party = party
-            Address.create([address._save_values])
+            Address.create([address._save_values()])
         flash(_('Successfully saved address.'))
         form.reset()
     else:
