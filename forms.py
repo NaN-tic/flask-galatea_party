@@ -1,10 +1,8 @@
 from flask import request
-from galatea.tryton import tryton
+from app_extensions import tryton
 from flask_babel import gettext as lazy_gettext
 from flask_wtf import FlaskForm as Form
 from wtforms import BooleanField, StringField, SelectField, IntegerField, validators
-
-Address = tryton.pool.get('party.address')
 
 _CONTACT_TYPES = [
     ('phone', lazy_gettext('Phone')),
@@ -20,6 +18,8 @@ _CONTACT_TYPES = [
 
 class AddressForm(Form):
     "Address form"
+    Address = tryton.pool.get('party.address')
+
     name = StringField(lazy_gettext('Name'))
     street = StringField(lazy_gettext('Street'), [validators.InputRequired()])
     city = StringField(lazy_gettext('City'), [validators.InputRequired()])
