@@ -1,21 +1,12 @@
 from flask import (Blueprint, render_template, abort, g, url_for, request,
     current_app, flash, redirect, session, jsonify)
-from galatea.tryton import tryton
+from app_extensions import tryton
 from galatea.helpers import login_required, manager_required
 from flask_babel import gettext as _
 from trytond.transaction import Transaction
 from .forms import AddressForm, ContactMechanismForm
 
 party = Blueprint('party', __name__, template_folder='templates')
-
-GALATEA_WEBSITE = current_app.config.get('TRYTON_GALATEA_SITE')
-
-Website = tryton.pool.get('galatea.website')
-PartyParty = tryton.pool.get('party.party')
-Address = tryton.pool.get('party.address')
-ContactMechanism = tryton.pool.get('party.contact_mechanism')
-
-BREADCUMB_MY_ACCOUNT = current_app.config.get('BREADCUMB_MY_ACCOUNT')
 
 
 class Party(object):
@@ -36,6 +27,8 @@ class Party(object):
 
 
 def base_breadcrumbs():
+    BREADCUMB_MY_ACCOUNT = current_app.config.get('BREADCUMB_MY_ACCOUNT')
+
     breadcrumbs = []
     if BREADCUMB_MY_ACCOUNT:
         breadcrumbs.append({
@@ -50,6 +43,7 @@ def base_breadcrumbs():
 @tryton.transaction()
 def admin_party_json(lang):
     '''Admin Party JSON'''
+    PartyParty = tryton.pool.get('party.party')
 
     def date_handler(obj):
         return obj.isoformat() if hasattr(obj, 'isoformat') else obj
@@ -80,6 +74,7 @@ def admin_party_json(lang):
 @tryton.transaction()
 def admin_address_json(lang):
     '''Admin Address JSON'''
+    Address = tryton.pool.get('party.address')
 
     def date_handler(obj):
         return obj.isoformat() if hasattr(obj, 'isoformat') else obj
@@ -109,6 +104,11 @@ def admin_address_json(lang):
 @tryton.transaction()
 def address_save(lang):
     '''Save Address'''
+    Website = tryton.pool.get('galatea.website')
+    PartyParty = tryton.pool.get('party.party')
+    Address = tryton.pool.get('party.address')
+    GALATEA_WEBSITE = current_app.config.get('TRYTON_GALATEA_SITE')
+
     if request.method == 'GET':
         return redirect(url_for('.party', lang=g.language))
 
@@ -168,6 +168,10 @@ def address_save(lang):
 @tryton.transaction()
 def address_edit(lang, id):
     '''Edit Address'''
+    Website = tryton.pool.get('galatea.website')
+    Address = tryton.pool.get('party.address')
+    GALATEA_WEBSITE = current_app.config.get('TRYTON_GALATEA_SITE')
+
     websites = Website.search([
         ('id', '=', GALATEA_WEBSITE),
         ], limit=1)
@@ -214,6 +218,11 @@ def address_edit(lang, id):
 @tryton.transaction()
 def address_new(lang):
     '''New Address'''
+    Website = tryton.pool.get('galatea.website')
+    PartyParty = tryton.pool.get('party.party')
+    Address = tryton.pool.get('party.address')
+    GALATEA_WEBSITE = current_app.config.get('TRYTON_GALATEA_SITE')
+
     websites = Website.search([
         ('id', '=', GALATEA_WEBSITE),
         ], limit=1)
@@ -262,6 +271,9 @@ def address_new(lang):
 @tryton.transaction()
 def contact_mechanism_save(lang):
     '''Save Contact Mechanism'''
+    PartyParty = tryton.pool.get('party.party')
+    ContactMechanism = tryton.pool.get('party.contact_mechanism')
+
     if request.method == 'GET':
         return redirect(url_for('.party', lang=g.language))
 
@@ -315,6 +327,8 @@ def contact_mechanism_save(lang):
 @tryton.transaction()
 def contact_mechanism_edit(lang, id):
     '''Edit Contact Mechanism'''
+    ContactMechanism = tryton.pool.get('party.contact_mechanism')
+
     customer = session.get('customer')
 
     with Transaction().set_context(active_test=False):
@@ -352,6 +366,8 @@ def contact_mechanism_edit(lang, id):
 @tryton.transaction()
 def contact_mechanism_new(lang):
     '''New Contact Mechanism'''
+    PartyParty = tryton.pool.get('party.party')
+
     customer = session.get('customer')
 
     with Transaction().set_context(active_test=False):
@@ -383,6 +399,8 @@ def contact_mechanism_new(lang):
 @tryton.transaction()
 def party_detail(lang):
     '''Party Detail'''
+    PartyParty = tryton.pool.get('party.party')
+
     customer = session.get('customer')
 
     parties = PartyParty.search([
