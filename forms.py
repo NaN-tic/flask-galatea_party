@@ -3,6 +3,7 @@ from app_extensions import tryton
 from flask_babel import gettext as lazy_gettext
 from flask_wtf import FlaskForm as Form
 from wtforms import BooleanField, StringField, SelectField, IntegerField, validators
+from werkzeug.local import LocalProxy
 
 _CONTACT_TYPES = [
     ('phone', lazy_gettext('Phone')),
@@ -18,7 +19,7 @@ _CONTACT_TYPES = [
 
 class AddressForm(Form):
     "Address form"
-    Address = tryton.pool.get('party.address')
+    Address = LocalProxy(lambda: tryton.pool.get('party.address'))
 
     name = StringField(lazy_gettext('Name'))
     street = StringField(lazy_gettext('Street'), [validators.InputRequired()])
@@ -45,8 +46,8 @@ class AddressForm(Form):
     def __init__(self, *args, **kwargs):
         Form.__init__(self, *args, **kwargs)
 
-    def validate(self):
-        rv = Form.validate(self)
+    def validate(self, extra_validators=None):
+        rv = Form.validate(self, extra_validators=extra_validators)
         if not rv:
             return False
         return True
@@ -60,14 +61,14 @@ class AddressForm(Form):
             or (website.country and website.country.id) or None)
         self.subdivision.data = address.subdivision.id if address.subdivision else None
         self.active.data = '1' if address.active else '0'
-        if hasattr(Address, 'contact_mechanisms'):
+        if hasattr(self.Address, 'contact_mechanisms'):
             self.email.data = address.email
             self.phone.data = address.phone
             self.mobile.data = address.mobile
             self.fax.data = address.fax
-        if hasattr(Address, 'delivery'):
+        if hasattr(self.Address, 'delivery'):
             self.delivery.data = 'on' if address.delivery else None
-        if hasattr(Address, 'invoice'):
+        if hasattr(self.Address, 'invoice'):
             self.invoice.data = 'on' if address.invoice else None
 
     def reset(self):
@@ -80,7 +81,7 @@ class AddressForm(Form):
         self.active.data = ''
 
     def get_address(self):
-        address = Address()
+        address = self.Address()
         address.party_name = request.form.get('name')
         address.street = request.form.get('street')
         address.city = request.form.get('city')
@@ -96,14 +97,14 @@ class AddressForm(Form):
                 address.active = False
             else:
                 address.active = True
-        if hasattr(Address, 'contact_mechanisms'):
+        if hasattr(self.Address, 'contact_mechanisms'):
             address.email = request.form.get('email')
             address.phone = request.form.get('phone')
             address.mobile = request.form.get('mobile')
             address.fax = request.form.get('fax')
-        if hasattr(Address, 'delivery'):
+        if hasattr(self.Address, 'delivery'):
             address.delivery = True if request.form.get('delivery') == 'on' else False
-        if hasattr(Address, 'invoice'):
+        if hasattr(self.Address, 'invoice'):
             address.invoice = True if request.form.get('invoice') == 'on' else False
         return address
 
@@ -120,8 +121,8 @@ class ContactMechanismForm(Form):
     def __init__(self, *args, **kwargs):
         Form.__init__(self, *args, **kwargs)
 
-    def validate(self):
-        rv = Form.validate(self)
+    def validate(self, extra_validators=None):
+        rv = Form.validate(self, extra_validators=extra_validators)
         if not rv:
             return False
         return True
